@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneCompile - Online Code Compiler</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="codemirror-5.65.16/lib/codemirror.css">
+    <script src="codemirror-5.65.16/lib/codemirror.js"></script>
+    <script src="codemirror-5.65.16/mode/clike/clike.js"></script>
+    <script src="codemirror-5.65.16/mode/python/python.js"></script>
+    <link rel="stylesheet" href="codemirror-5.65.16/theme/midnight.css">
+    <script src="codemirror-5.65.16/addon/edit/closebrackets.js"></script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body style="background-color: #43455D;">
+  
+    <div class="row m-3">
+        <div class="col">
+            <div class="d-flex justify-content-between mb-3 rounded p-2">
+                <div class="col-sm-3">
+                    <label class="visually-hidden" for="specificSizeSelect">Preference</label>
+                    <select class="form-select" id="specificSizeSelect">
+                      <option selected>Select Language</option>
+                      <option value="C">C</option>
+                      <option value="C++">C++</option>
+                      <option value="Java">Java</option>
+                      <option value="Python">Python</option>
+                    </select>
+                  </div>
+                  <div>
+                    <button type="button" id="run" class="btn btn-primary" style="background-color: rgb(11, 11, 184);">Run <i class="bi bi-play-fill"></i></button>
+                  </div>
+            </div>
+            <textarea type="text" class="form-control" id="editor" aria-label="First name"></textarea>
+        </div>
+        <div class="col d-flex flex-column rounded px-4">
+          <div class="h-50 text-center">
+            <label for="Input" class="text-light mt-4 mb-2 h4">Input</label>
+            <textarea type="text" id="input" class="form-control border border-info h-75" aria-label="Last name"></textarea>
+          </div>
+          <div class="h-50 text-center">
+            <label for="Output" class="text-light mt-3 mb-2 h4 ">Output</label>
+            <textarea type="text" id="output" class="form-control border border-info h-75" aria-label="Last name" readonly></textarea>
+          </div>
+        </div>
+      </div>
+    <script>
+        var editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
+            mode: "text/x-c++src",
+            theme: "midnight",
+            lineNumbers: true,
+            autoCloseBrackets: true
+        });
+        var width = window.innerWidth;
+        var input = document.getElementById("input");
+        var output = document.getElementById("output");
+        var run = document.getElementById("run");
+        editor.setSize(0.6 * width, "450px");
+        var option = document.getElementById("specificSizeSelect");
+
+        option.addEventListener("change", function () {
+            if (option.value == "C") {
+                editor.setOption("mode", "text/x-csrc");
+            } else if (option.value == "C++") {
+                editor.setOption("mode", "text/x-c++src");
+            } else if (option.value == "Java") {
+                editor.setOption("mode", "text/x-java");
+            } else if (option.value == "Python") {
+                editor.setOption("mode", "text/x-python");
+            }
+        });
+
+        run.addEventListener("click", async function () {
+            var codeData = {
+                code: editor.getValue(),
+                input: input.value,
+                lang: option.value
+            };
+
+            try {
+                var response = await fetch("/compile", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(codeData)
+                });
+                var result = await response.json();
+                output.value = result.output;
+            } catch (error) {
+                console.error("Error:", error);
+                output.value = "An error occurred while processing your request.";
+            }
+        });
+    </script>
+</body>
+</html>
